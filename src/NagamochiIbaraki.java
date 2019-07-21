@@ -35,13 +35,13 @@ public class NagamochiIbaraki {
 
 //        this.V = 25;
 //        this.V_ = 25;
-        this.V = 10;
-        this.V_ = 10;
+        this.V = 5;
+        this.V_ = 5;
         random = new Random();
         adj = new int[V][V];
         exist = new boolean[V];
 //        this.E = getRandomEdges();
-        this.E = 80;
+        this.E = 18;
         generateRandomEdges();
 //        for(int i = 0; i < V_; i++){
 //            for(int j = 0; j < V_; j++){
@@ -99,12 +99,12 @@ public class NagamochiIbaraki {
         Set<Integer> visited = new LinkedHashSet<>();
 
 //        int vertex = getArbitraryVertex(V, visited);
-        int vertex = getNextVertex(V, visited);
+        int vertex = getNextVertex();
         visited.add(vertex);
         while (visited.size() != V){
 
             int tightVertex = getMostTightlyConnected(visited);
-            if(visited.contains(tightVertex)){
+            if(tightVertex == -1){
                 return -1;
             }
             visited.add(tightVertex);
@@ -155,7 +155,7 @@ public class NagamochiIbaraki {
 
     private int getMostTightlyConnected(Set<Integer> visited){
 
-        int tightVertex = 0;
+        int tightVertex = -1;
         int strength[] = new int[V];
         Arrays.fill(strength, 0);
         for(int vertex:visited){
@@ -192,10 +192,10 @@ public class NagamochiIbaraki {
         return vertexArr[random.nextInt(index)];
     }
 
-    private int getNextVertex(int V, Set<Integer> visited){
+    private int getNextVertex(){
 
-        for(int i = 0; i < V; i++){
-            if(!visited.contains(i)){
+        for(int i = 0; i < V_; i++){
+            if(exist[i]){
                 return i;
             }
         }
@@ -239,21 +239,18 @@ public class NagamochiIbaraki {
 
     private void createSampleGraph2() {
 
-        this.V = 4;
-        this.E = 5;
+        this.V = 5;
+        this.E = 8;
+        this.V_ = 5;
         adj =
                 new int[][] {
-                        {0,	212,	168,	115,	51,	0,	49,	92,	61,	60,	},
-                        {212,	0,	157,	88,	35,	201,	88,	39,	113,	74,	},
-                        {168,	157,	0,	0,	0,	111,	53,	136,	99,	182,	},
-                        {115,	88,	0,	0,	136,	68,	0,	75,	129,	177,	},
-                        {51,	35,	0,	136,	0,	255,	114,	91,	87,	119,	},
-                        {0,	201,	111,	68,	255,	0,	129,	12,	86,	131,	},
-                        {49,	88,	53,	0,	114,	129,	0,	209,	174,	0,	},
-                        {92,	39,	136,	75,	91,	12,	209,	0,	45,	66,	},
-                        {61,	113,	99,	129,	87,	86,	174,	45,	0,	185,	},
-                        {60,	74,	182,	177,	119,	131,	0,	66,	185,	0	}};
-
+                        {0,	121,	32,	320,	183,	},
+                        {121,	0,	57,	0,	0,	},
+                        {32,	57,	0,	100,	52,	},
+                        {320,	0,	100,	0,	170,	},
+                        {183,	0,	52,	170,	0,	}};
+        exist = new boolean[V_];
+        Arrays.fill(exist, true);
     }
 
     private void printGraph() {
