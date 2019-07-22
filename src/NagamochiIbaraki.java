@@ -5,7 +5,7 @@ import java.util.Set;
 
 public class NagamochiIbaraki {
 
-    int V, V_;
+    int V, _V;
     int E;
     int[][] adj;
     boolean[] exist;
@@ -15,50 +15,70 @@ public class NagamochiIbaraki {
     public static void main(String[] args){
 
         NagamochiIbaraki obj = new NagamochiIbaraki();
+        // initializes the graph with random edges
+        obj.initializeGraph();
         obj.runNagamochiIbarakiAlgo();
 
+
+        System.out.println();
+        System.out.println();
+        System.out.println("---------------------------------------------------------------------------------------------------------");
+        System.out.println();
+        System.out.println();
+        // creates sample graph given in slides
+        obj.createSampleGraph();
+        obj.runNagamochiIbarakiAlgo();
     }
 
+    /**
+     * calculates mincut for the given graph
+     * returns mincut value for a properly connected graph
+     * If the graph is disconnected, it returns -1 value for mincut
+     */
     private void runNagamochiIbarakiAlgo(){
 
-//        initializeGraph();
-        createSampleGraph2();
+
+        printGraph();
         int minCut = calculateMinCut();
         if(minCut == -1){
-            System.out.println("Disconnected");
+            System.out.println("Graph is Disconnected");
         }
-
-        System.out.println(minCut);
+        else{
+            System.out.println("Mincut of the given undirected graph: "+minCut);
+        }
     }
 
+    /**
+     * initializes the graph with V = 25, E = random value between 50 and 550
+     * Randomly creates edges between vertices with edge weight random
+     * exist array : keeps track whether the current vertex is present in the graph (i.e. not deleted while merging)
+     * sVertex = second last vertex entering the cut set
+     * tVertex = last vertex entering the cut set
+     **/
     private void initializeGraph(){
 
-//        this.V = 25;
-//        this.V_ = 25;
-        this.V = 5;
-        this.V_ = 5;
+        this.V = 25;
+        this._V = 25;
         random = new Random();
-        adj = new int[V][V];
-        exist = new boolean[V];
-//        this.E = getRandomEdges();
-        this.E = 18;
+        adj = new int[_V][_V];
+        exist = new boolean[_V];
+        this.E = getRandomEdges();
         generateRandomEdges();
-//        for(int i = 0; i < V_; i++){
-//            for(int j = 0; j < V_; j++){
-//                System.out.print(adj[i][j] + " ");
-//            }
-//            System.out.println();
-//        }
-        printGraph();
         Arrays.fill(exist, true);
         sVertex = tVertex = 0;
     }
 
+    /**
+     * @return random number of edges ranging from 50 to 550
+     */
     private int getRandomEdges(){
 
         return 5 * random.nextInt(110 - 10 + 1) + 10;
     }
 
+    /**
+     * returns randomly generated edges (parallel edges allowed but no self loops)
+     */
     private void generateRandomEdges(){
 
         for(int i = 0; i < E; i++){
@@ -75,38 +95,58 @@ public class NagamochiIbaraki {
 
     }
 
+    /**
+     * calculates mincut by executing various rounds of calculating the stphasecut and merging vertices
+     * @return mincut
+     */
     private int calculateMinCut(){
 
         int minCut = Integer.MAX_VALUE;
         int stPhaseCut;
         while(V > 1){
 
+            //calculates stPhaseCut for this round
             stPhaseCut = minCutPhase();
+
+            //stPhaseCut = -1 when the graph is disconnected
             if(stPhaseCut == -1){
                 return -1;
             }
+            // keeps track of minCit out of all stPhaseCuts
             if(stPhaseCut < minCut){
                 minCut = stPhaseCut;
             }
+            // merges sVertex and tVertex into sVertex
             merge(sVertex, tVertex);
         }
         return  minCut;
     }
 
+    /**
+     * calculates mincut for one round of
+     * @return
+     */
     private int minCutPhase(){
 
         int phaseCut = 0;
+        // set to track visited vertices for this iteration
+        // LinkedHashSet maintains the order of insertion of vertices in the set
         Set<Integer> visited = new LinkedHashSet<>();
 
-//        int vertex = getArbitraryVertex(V, visited);
-        int vertex = getNextVertex();
+        // gets an artitrary vertex out of existing (not deleted while merging) vertices
+        int vertex = getArbitraryVertex();
         visited.add(vertex);
         while (visited.size() != V){
 
+            // most tightly connected vertex is the vertex whose sum of edge weights into set visited is maximum
             int tightVertex = getMostTightlyConnected(visited);
+
+            // If the graph is disconnected
             if(tightVertex == -1){
                 return -1;
             }
+
+            // add the tightVertex to visited
             visited.add(tightVertex);
         }
 
@@ -114,10 +154,12 @@ public class NagamochiIbaraki {
         int index = 0;
         for(int visitedVertex:visited){
 
+            // getting the second last inserted vertex in visited set
             if(index == visited.size() - 2){
                 sVertex = visitedVertex;
                 index++;
             }
+            // getting the last inserted vertex in visited set
             else if(index == visited.size() - 1){
                 tVertex = visitedVertex;
             }
@@ -126,7 +168,7 @@ public class NagamochiIbaraki {
             }
         }
 
-        for(int i = 0; i < V; i++){
+        for(int i = 0; i < _V; i++){
             phaseCut += adj[tVertex][i];
         }
 
@@ -153,14 +195,19 @@ public class NagamochiIbaraki {
         this.V--;
     }
 
+    /**
+     *
+     * @param visited is the set of visited vertices for this current iteration for calculation of mincut
+     * @return returns the vertex having maximum sum of edge weights out of all vertices in visited
+     */
     private int getMostTightlyConnected(Set<Integer> visited){
 
         int tightVertex = -1;
-        int strength[] = new int[V];
+        int strength[] = new int[_V];
         Arrays.fill(strength, 0);
         for(int vertex:visited){
 
-            for(int c = 0; c < V; c++){
+            for(int c = 0; c < _V; c++){
                 if(!visited.contains(c) && adj[vertex][c] != 0){
                     strength[c] += adj[vertex][c];
                 }
@@ -168,7 +215,7 @@ public class NagamochiIbaraki {
         }
 
         int maxVal = 0;
-        for(int i = 0; i < V; i++){
+        for(int i = 0; i < _V; i++){
             if(maxVal < strength[i]){
                 maxVal = strength[i];
                 tightVertex = i;
@@ -177,14 +224,14 @@ public class NagamochiIbaraki {
         return tightVertex;
     }
 
-    private int getArbitraryVertex(int V, Set<Integer> visited){
+    private int getArbitraryVertex(){
 
-        int vertexArr[] = new int[V];
+        int vertexArr[] = new int[_V];
         int index = 0;
 
         // get all unvisited vertices in  vertexArr
-        for(int i = 0; i < V; i++){
-            if(!visited.contains(i)){
+        for(int i = 0; i < _V; i++){
+            if(exist[i]){
                 vertexArr[index++] = i;
             }
         }
@@ -192,9 +239,10 @@ public class NagamochiIbaraki {
         return vertexArr[random.nextInt(index)];
     }
 
+    // picks the next available vertex from the graph
     private int getNextVertex(){
 
-        for(int i = 0; i < V_; i++){
+        for(int i = 0; i < _V; i++){
             if(exist[i]){
                 return i;
             }
@@ -205,20 +253,21 @@ public class NagamochiIbaraki {
     private void createSampleGraph() {
 
         this.V = 6;
+        this._V = 6;
         this.E = 7;
         adj =   new int[][] {
-                        {0, 6, 0, 0, 0, 0},
-                        {6, 0, 8, 3, 0, 0},
-                        {0, 8, 0, 0, 1, 0},
-                        {0, 3, 0, 0, 20, 5},
-                        {0, 0, 1, 20, 0, 2},
-                        {0, 0, 0, 5, 2, 0},
+                {0, 6, 0, 0, 0, 0},
+                {6, 0, 8, 3, 0, 0},
+                {0, 8, 0, 0, 1, 0},
+                {0, 3, 0, 0, 20, 5},
+                {0, 0, 1, 20, 0, 2},
+                {0, 0, 0, 5, 2, 0}
                 };
 
+        random = new Random();
         exist = new boolean[V];
         Arrays.fill(exist, true);
         sVertex = tVertex = 0;
-
     }
 
     public int getV() {
@@ -237,37 +286,22 @@ public class NagamochiIbaraki {
         E = e;
     }
 
-    private void createSampleGraph2() {
-
-        this.V = 5;
-        this.E = 8;
-        this.V_ = 5;
-        adj =
-                new int[][] {
-                        {0,	121,	32,	320,	183,	},
-                        {121,	0,	57,	0,	0,	},
-                        {32,	57,	0,	100,	52,	},
-                        {320,	0,	100,	0,	170,	},
-                        {183,	0,	52,	170,	0,	}};
-        exist = new boolean[V_];
-        Arrays.fill(exist, true);
-    }
-
+    // prints the graph - number of vertices, edges and the adjacency matrix
     private void printGraph() {
         if (adj == null) {
-            System.out.println("create graph by calling createSampleGraph() or CreateGraph()");
+            System.out.println("create graph by calling initializeGraph() or createSampleGraph()");
             return;
         }
         System.out.println("#Vertices: " + V + "; #Edges: " + E);
-        System.out.println("------------------------------------");
-        for (int i = 0; i < V_; i++) {
+        System.out.println("*************************************");
+        for (int i = 0; i < _V; i++) {
             System.out.print("{");
-            for (int j = 0; j < V_; j++) {
+            for (int j = 0; j < _V; j++) {
                 System.out.print(adj[i][j] + ",\t");
             }
             System.out.print("},\n");
         }
-        System.out.println("------------------------------------");
+        System.out.println("**************************************");
     }
 
 }
